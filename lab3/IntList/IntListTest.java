@@ -1,6 +1,6 @@
-import static org.junit.Assert.*;
-
 import org.junit.Test;
+
+import static org.junit.Assert.*;
 
 public class IntListTest {
 
@@ -70,4 +70,16 @@ public class IntListTest {
       * to add a main method. See ArithmeticTest.java for an
       * example. */
 
+    /** Returns the reverse of the given Intlist
+     * This method is destructive. If given null
+     * as an input, returns null.
+     */
+    @Test
+    public void testReverse() {
+        IntList A = IntList.of(0, 1, 2, 3);
+        IntList B = null;
+        assertNotEquals(A, IntList.reVerse(A));
+        assertNull(IntList.reVerse(B));
+        assertEquals(IntList.of(3, 2, 1, 0), IntList.reVerse(A));
+    }
 }

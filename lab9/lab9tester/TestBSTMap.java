@@ -13,7 +13,7 @@ public class TestBSTMap {
     @Test
     public void sanityGenericsTest() {
         try {
-            BSTMap<String, String> a = new BSTMap<String, String>();
+            BSTMap<String, String> a = new BSTMap<>();
             BSTMap<String, Integer> b = new BSTMap<String, Integer>();
             BSTMap<Integer, String> c = new BSTMap<Integer, String>();
             BSTMap<Boolean, Integer> e = new BSTMap<Boolean, Integer>();

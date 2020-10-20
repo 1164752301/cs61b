@@ -11,11 +11,11 @@ public class IntList {
     /**
      * First element of list.
      */
-    public int first;
+    private int first;
     /**
      * Remaining elements of list.
      */
-    public IntList rest;
+    private IntList rest;
 
     /**
      * A List with first FIRST0 and rest REST0.
@@ -33,9 +33,6 @@ public class IntList {
         this(0, null);
     }
 
-    public void addfirst(int x){
-    	this = new IntList(x, this);
-    }
     /**
      * Returns a list equal to L with all elements squared. Destructive.
      */
@@ -85,7 +82,7 @@ public class IntList {
 
     public static IntList dcatenate(IntList A, IntList B) {
         IntList ptr = A;
-        while(A.rest != null){
+        while (A.rest != null) {
             A = A.rest;
         }
         A.rest = B;
@@ -97,12 +94,34 @@ public class IntList {
      * * elements of B.  May NOT modify items of A.  Use 'new'.
      */
     public static IntList catenate(IntList A, IntList B) {
-        if(A == null){
+        if (A == null) {
             return B;
-        }else{
+        } else {
             return new IntList(A.first, catenate(A.rest, B));
         }
     }
+
+    /** Returns the reverse of the given Intlist
+     * This method is destructive. If given null
+     * as an input, returns null.
+     */
+    public static IntList reVerse(IntList A) {
+        if (A == null) {
+            return null;
+        }
+        IntList P = A;
+        while (A.rest != null) {
+            A = A.rest;
+        }
+        IntList R = new IntList(A.first, null);
+        while (P.rest != null) {
+            R.rest  = new IntList(P.first, R.rest);
+            P = P.rest;
+        }
+        return R;
+    }
+
+
 
 
 
@@ -239,29 +258,6 @@ public class IntList {
         }
         out.format(")");
         return out.toString();
-    }
-
-    public void addAdjacent(){
-    	car = this;
-    	cdr = this.rest;
-    	while (cdr != null){
-    		if (car.first == cdr.first){
-    			car.first += cdr.first;
-    			car.rest = cdr.rest;
-    			cdr = cdr.rest;
-    		}else{
-    			car = car.rest;
-    			cdr = cdr.rest;
-    		}
-    	}
-    }
-
-    public void square_insert(int n){
-    	while (this!=null){
-    	this.rest = new IntLIst(this.first * this.first, this.rest);
-    	this = this.rest.rest;
-    	}
-    	this = IntList(n, null);
     }
 }
 
