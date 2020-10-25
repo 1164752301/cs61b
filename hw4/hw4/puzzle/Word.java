@@ -42,7 +42,10 @@ public class Word implements WorldState {
 
         word = w;
         goal = g;
+
     }
+
+
 
     /**
      * Computes the edit distance between a and b. From
@@ -115,4 +118,6 @@ public class Word implements WorldState {
         result = 31 * result + (goal != null ? goal.hashCode() : 0);
         return result;
     }
+
+
 }

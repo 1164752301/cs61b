@@ -4,8 +4,8 @@ import java.util.Random;
 import edu.princeton.cs.introcs.*;
 
 public class PercolationStats {
-    public int[] openedStats;
-    public int time;
+    private int[] openedStats;
+    private int time;
         public PercolationStats(int N, int T, PercolationFactory pf) {
             openedStats = new int[T];
             time = T;

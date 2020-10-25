@@ -3,11 +3,11 @@ package hw2;
 import edu.princeton.cs.algs4.WeightedQuickUnionUF;
 
 public class Percolation {
-    private class Site{
-        public int row;
-        public int column;
-        public boolean opened;
-        public Site(int a, int b){
+    private class Site {
+        private int row;
+        private int column;
+        private boolean opened;
+        public Site(int a, int b) {
             row = a;
             column = b;
             opened = false;
@@ -18,20 +18,23 @@ public class Percolation {
     private int openSites;
     private final WeightedQuickUnionUF unionGrid;
     private final int width;
+    private final WeightedQuickUnionUF noBackWash;
 
-    public Percolation(int N){
+    public Percolation(int N) {
         width = N;
         grid = new Site[N * N];
         openSites = 0;
         unionGrid = new WeightedQuickUnionUF(N * N + 2);
-        for(int i = 0; i < N; i++) {
-            for(int j = 0; j < N; j++){
+        noBackWash = new WeightedQuickUnionUF(N * N + 1);
+        for (int i = 0; i < N; i++) {
+            for (int j = 0; j < N; j++) {
                 grid [i * N + j] = new Site(i, j);
             }
         }
-        for(int i = 0; i < N; i ++) {
+        for (int i = 0; i < N; i++) {
             unionGrid.union(grid.length, i);
             unionGrid.union(grid.length + 1, grid.length - 1 - i);
+            noBackWash.union(grid.length, i);
         }
 
     }                // create N-by-N grid, with all sites initially blocked
@@ -69,6 +72,7 @@ public class Percolation {
             if (neighbour != -1 ) {
                 if (grid[neighbour].opened) {
                     unionGrid.union(position, neighbour);
+                    noBackWash.union(position, neighbour);
                 }
             }
         }
@@ -89,7 +93,7 @@ public class Percolation {
 
     public boolean isFull(int row, int col){
         int position = xyTo1D(row, col);
-        return (unionGrid.connected(position, grid.length) && isOpen(row, col));
+        return (noBackWash.connected(position, grid.length) && isOpen(row, col));
     }  // is the site (row, col) full?
 
     public int numberOfOpenSites(){
