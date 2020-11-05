@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
+
 /**
  *  Parses OSM XML files using an XML SAX parser. Used to construct the graph of roads for
  *  pathfinding, under some constraints.
@@ -38,6 +39,8 @@ public class GraphBuildingHandler extends DefaultHandler {
                     "secondary_link", "tertiary_link"));
     private String activeState = "";
     private final GraphDB g;
+    private GraphDB.Way tmpWay;
+    private GraphDB.Node lastNode;
 
     /**
      * Create a new GraphBuildingHandler.
@@ -45,6 +48,8 @@ public class GraphBuildingHandler extends DefaultHandler {
      */
     public GraphBuildingHandler(GraphDB g) {
         this.g = g;
+        tmpWay = null;
+        lastNode = null;
     }
 
     /**
@@ -73,11 +78,16 @@ public class GraphBuildingHandler extends DefaultHandler {
 //            System.out.println("Node lat: " + attributes.getValue("lat"));
 
             /* TODO Use the above information to save a "node" to somewhere. */
+            GraphDB.Node node = new GraphDB.Node(g, attributes.getValue("id"),
+                    attributes.getValue("lon"),
+                    attributes.getValue("lat"));
+            lastNode = node;
             /* Hint: A graph-like structure would be nice. */
 
         } else if (qName.equals("way")) {
             /* We encountered a new <way...> tag. */
             activeState = "way";
+            tmpWay = new GraphDB.Way(g, attributes.getValue("id"));
 //            System.out.println("Beginning a way...");
         } else if (activeState.equals("way") && qName.equals("nd")) {
             /* While looking at a way, we found a <nd...> tag. */
@@ -89,6 +99,7 @@ public class GraphBuildingHandler extends DefaultHandler {
             cumbersome since you might have to remove the connections if you later see a tag that
             makes this way invalid. Instead, think of keeping a list of possible connections and
             remember whether this way is valid or not. */
+            tmpWay.addNode(attributes.getValue("ref"));
 
         } else if (activeState.equals("way") && qName.equals("tag")) {
             /* While looking at a way, we found a <tag...> tag. */
@@ -97,12 +108,21 @@ public class GraphBuildingHandler extends DefaultHandler {
             if (k.equals("maxspeed")) {
                 //System.out.println("Max Speed: " + v);
                 /* TODO set the max speed of the "current way" here. */
+                tmpWay.info.put(k, v);
             } else if (k.equals("highway")) {
                 //System.out.println("Highway type: " + v);
                 /* TODO Figure out whether this way and its connections are valid. */
+                for(String valid: ALLOWED_HIGHWAY_TYPES) {
+                    if (v.equals(valid)) {
+                        tmpWay.valid = true;
+                        break;
+                    }
+                }
+                tmpWay.info.put("highway", attributes.getValue("v"));
                 /* Hint: Setting a "flag" is good enough! */
             } else if (k.equals("name")) {
                 //System.out.println("Way Name: " + v);
+                tmpWay.info.put("name", attributes.getValue("v"));
             }
 //            System.out.println("Tag with k=" + k + ", v=" + v + ".");
         } else if (activeState.equals("node") && qName.equals("tag") && attributes.getValue("k")
@@ -113,6 +133,7 @@ public class GraphBuildingHandler extends DefaultHandler {
             node this tag belongs to. Remember XML is parsed top-to-bottom, so probably it's the
             last node that you looked at (check the first if-case). */
 //            System.out.println("Node's name: " + attributes.getValue("v"));
+            lastNode.info.put(attributes.getValue("k"), attributes.getValue("v"));
         }
     }
 
@@ -134,6 +155,15 @@ public class GraphBuildingHandler extends DefaultHandler {
             /* Hint1: If you have stored the possible connections for this way, here's your
             chance to actually connect the nodes together if the way is valid. */
 //            System.out.println("Finishing a way...");
+            activeState = "";
+            if (tmpWay.valid) {
+                for (int i = 0; i < tmpWay.nodes.size() - 1; i++) {
+                    GraphDB.Node tmp1 = g.lookupNode.get(tmpWay.nodes.get(i));
+                    GraphDB.Node tmp2 = g.lookupNode.get(tmpWay.nodes.get(i + 1));
+                    tmp1.adjacent.add(tmp2);
+                    tmp2.adjacent.add(tmp1);
+                }
+            }
         }
     }
 

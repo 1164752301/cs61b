@@ -1,8 +1,6 @@
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 /**
  * This class provides a shortestPath method for finding routes between two points
  * on the map. Start by using Dijkstra's, and if your code isn't fast enough for your
@@ -25,8 +23,71 @@ public class Router {
      */
     public static List<Long> shortestPath(GraphDB g, double stlon, double stlat,
                                           double destlon, double destlat) {
-        return null; // FIXME
+        boolean found = false;
+        long start = g.closest(stlon, stlat);
+        long destination = g.closest(destlon, destlat);
+        SearchNode startNode = new SearchNode(g, g.lookupNode.get(start),
+                null, destination, true);
+        PriorityQueue<SearchNode> fringe = new PriorityQueue<>();
+        fringe.add(startNode);
+        while (!found) {
+            SearchNode current = fringe.poll();
+            current.node.marked = true;
+            for (GraphDB.Node node: current.node.adjacent) {
+                if (!node.marked) {
+                    SearchNode tmp = new SearchNode(g, node, current, destination, false);
+                    fringe.add(tmp);
+                }
+                if (node.id == destination) {
+                    found = true;
+                    break;
+                }
+            }
+        }
+        Stack<SearchNode> auxiliary = new Stack<>();
+        SearchNode current = fringe.poll();
+        while (current != null) {
+            auxiliary.push(current);
+            current = current.parent;
+        }
+        ArrayList<Long> result = new ArrayList<>();
+        while (!auxiliary.empty()) {
+            SearchNode element = auxiliary.pop();
+            element.node.marked = false;
+            result.add(element.node.id);
+        }
+        return result; // FIXME
     }
+
+    public static class SearchNode implements Comparable<SearchNode> {
+        public GraphDB.Node node;
+        public GraphDB g;
+        public SearchNode parent;
+        public double DistanceSoFar;
+        public long destination;
+
+        public SearchNode(GraphDB graph, GraphDB.Node n, SearchNode p, long d, boolean root) {
+            g = graph;
+            node = n;
+            parent = p;
+            destination = d;
+            if (!root)
+            DistanceSoFar = parent.DistanceSoFar + g.distance(parent.node.id, node.id);
+            else DistanceSoFar = 0;
+        }
+
+        @Override
+        public int compareTo(SearchNode other) {
+            if (this.estimatedDistance() - other.estimatedDistance() == 0)
+                return 0;
+            else return this.estimatedDistance() > other.estimatedDistance() ? 1 : -1;
+        }
+
+        private double estimatedDistance() {
+            return DistanceSoFar + g.distance(node.id, destination);
+        }
+    }
+
 
     /**
      * Create the list of directions corresponding to a route on the graph.
@@ -37,7 +98,47 @@ public class Router {
      * route.
      */
     public static List<NavigationDirection> routeDirections(GraphDB g, List<Long> route) {
-        return null; // FIXME
+        ArrayList<NavigationDirection> result = new ArrayList<>();
+        double lastbearing = 0;
+        for (int i = 0; i < route.size() - 1; i++) {
+            NavigationDirection currentNavi = new NavigationDirection();
+            GraphDB.Way resultWay = null;
+            GraphDB.Node node1 = g.lookupNode.get(route.get(i));
+            GraphDB.Node node2 = g.lookupNode.get(route.get(i + 1));
+            for (GraphDB.Way way:node1.onWay) {
+                if (node2.onWay.contains(way)) {
+                    resultWay = way;
+                    break;
+                }
+            }
+            if (resultWay.info.containsKey("name"))
+                currentNavi.way = resultWay.info.get("name");
+            currentNavi.distance = g.distance(node1.id, node2.id);
+            if (i == 0) {
+                currentNavi.direction = 0;
+                result.add(currentNavi);
+                continue;
+            }
+            double currentBearing = g.bearing(node1.id, node2.id);
+            double direction = currentBearing - lastbearing;
+            if (Math.abs(direction) <= 15)
+                currentNavi.direction = 1;
+            else if (Math.abs(direction) <= 30) {
+                if (direction < 0) currentNavi.direction = 2;
+                else currentNavi.direction = 3;
+            }
+            else if (Math.abs(direction) <= 100) {
+                if (direction < 0) currentNavi.direction = 4;
+                else currentNavi.direction = 5;
+            }
+            else if (Math.abs(direction) > 100) {
+                if (direction < 0) currentNavi.direction = 6;
+                else currentNavi.direction = 7;
+            }
+            result.add(currentNavi);
+        }
+        // FIXME
+        return result;
     }
 
 

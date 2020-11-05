@@ -1,3 +1,5 @@
+package CouSD;
+
 import edu.princeton.cs.algs4.MinPQ;
 
 import java.util.HashMap;

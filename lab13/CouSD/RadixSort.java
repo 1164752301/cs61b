@@ -1,3 +1,8 @@
+package CouSD;
+
+import java.util.Arrays;
+import java.util.HashMap;
+
 /**
  * Class for doing Radix sort
  *
@@ -18,7 +23,16 @@ public class RadixSort {
     public static String[] sort(String[] asciis) {
         // TODO: Implement LSD Sort
 
-        return null;
+        sortHelperLSD(asciis, maxLength(asciis) - 1);
+        return asciis;
+    }
+
+    public static int maxLength(String[] asciis) {
+        int max = 0;
+        for (String s : asciis) {
+            max = Math.max(s.length(), max);
+        }
+        return max;
     }
 
     /**
@@ -29,12 +43,36 @@ public class RadixSort {
      */
     private static void sortHelperLSD(String[] asciis, int index) {
         // Optional LSD helper method for required LSD radix sort
+        // Corner case
+        if (index == -1) return;
         int[] auxiliary = new int[asciis.length];
+        HashMap<Integer, Integer> frequency = new HashMap<>();
+        HashMap<String, Integer> value = new HashMap<>();
         int i = 0;
+        // Translate the charater on the specified index to an int and Countsort the array
         for(String s : asciis) {
-            if (index > s.length() - 1) auxiliary[i++] = 0;
-            else auxiliary[i++] = s.charAt(index);
+            if (index > s.length() - 1) auxiliary[i] = 0;
+            else auxiliary[i] = s.charAt(index);
+            // Correspond each String to the character value
+            value.put(s, auxiliary[i]);
+            if (!frequency.containsKey(auxiliary[i])) frequency.put(auxiliary[i], 1);
+            else frequency.put(auxiliary[i], frequency.get(auxiliary[i]) + 1);
+            i++;
         }
+        int[] pos = new int[256];
+        int posCount = 0;
+        for (int j = 0; j < 256; j++) {
+            if (value.values().contains(j)) {
+                pos[j] = posCount;
+                posCount += frequency.get(j);
+            }
+        }
+        String[] copy = asciis.clone();
+        for (String s : copy) {
+            asciis[pos[value.get(s)]++] = s;
+        }
+        //execute the next digit
+        sortHelperLSD(asciis, index - 1);
         return;
     }
 
@@ -51,5 +89,25 @@ public class RadixSort {
     private static void sortHelperMSD(String[] asciis, int start, int end, int index) {
         // Optional MSD helper method for optional MSD radix sort
         return;
+    }
+    public static void main(String[] args) {
+        String[] unsorted0 = {"blala", "asdasc", "fdsd", "eef", "e", "aaaaaaaaaaa"};
+        String[] unsorted1 = {"b", "c", "f", "e", "d", "a"};
+        String[] unsorted2 = {"ba", "ca", "fa", "ea", "da", "aa"};
+        String[] unsorted3 = {"ab", "ac", "af", "ae", "ad", "aa"};
+        String[] unsorted4 = {"abc", "ab", "aba", "ae", "ac", "aa"};
+        String[] unsorted5 = {"ab", "abc", "aba", "eef", "ee", "ac", "aa"};
+        String[] sorted0 = sort(unsorted0);
+        String[] sorted1 = sort(unsorted1);
+        String[] sorted2 = sort(unsorted2);
+        String[] sorted3 = sort(unsorted3);
+        String[] sorted4 = sort(unsorted4);
+        String[] sorted5 = sort(unsorted5);
+        System.out.println(Arrays.asList(sorted0));
+        System.out.println(Arrays.asList(sorted1));
+        System.out.println(Arrays.asList(sorted2));
+        System.out.println(Arrays.asList(sorted3));
+        System.out.println(Arrays.asList(sorted4));
+        System.out.println(Arrays.asList(sorted5));
     }
 }

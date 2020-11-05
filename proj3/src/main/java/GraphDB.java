@@ -6,7 +6,7 @@ import java.io.IOException;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
-import java.util.ArrayList;
+import java.util.*;
 
 /**
  * Graph for storing all of the intersection (vertex) and road (edge) information.
@@ -20,7 +20,9 @@ import java.util.ArrayList;
 public class GraphDB {
     /** Your instance variables for storing the graph. You should consider
      * creating helper classes, e.g. Node, Edge, etc. */
-
+    public ArrayList<Node> Nodes;
+    public HashSet<Way> Ways;
+    public HashMap<Long, Node> lookupNode;
     /**
      * Example constructor shows how to create and start an XML parser.
      * You do not need to modify this constructor, but you're welcome to do so.
@@ -31,6 +33,9 @@ public class GraphDB {
             File inputFile = new File(dbPath);
             FileInputStream inputStream = new FileInputStream(inputFile);
             // GZIPInputStream stream = new GZIPInputStream(inputStream);
+            Nodes = new ArrayList<>();
+            Ways = new HashSet<>();
+            lookupNode = new HashMap<>();
 
             SAXParserFactory factory = SAXParserFactory.newInstance();
             SAXParser saxParser = factory.newSAXParser();
@@ -58,6 +63,22 @@ public class GraphDB {
      */
     private void clean() {
         // TODO: Your code here.
+        ArrayList<Node> tmp = new ArrayList<>();
+        for (Node node: Nodes) {
+            if (node.adjacent.size() == 0) tmp.add(node);
+        }
+        for (Node node: tmp) {
+            Nodes.remove(node);
+            lookupNode.remove(node.id);
+        }
+    }
+
+    public void addNode(Node v) {
+        Nodes.add(v);
+    }
+
+    public void addWay(Way w) {
+        Ways.add(w);
     }
 
     /**
@@ -66,7 +87,11 @@ public class GraphDB {
      */
     Iterable<Long> vertices() {
         //YOUR CODE HERE, this currently returns only an empty list.
-        return new ArrayList<Long>();
+        ArrayList<Long> vertices = new ArrayList<>();
+        for (Node node : Nodes) {
+            vertices.add(node.id);
+        }
+        return vertices;
     }
 
     /**
@@ -75,7 +100,12 @@ public class GraphDB {
      * @return An iterable of the ids of the neighbors of v.
      */
     Iterable<Long> adjacent(long v) {
-        return null;
+        ArrayList<Long> result = new ArrayList<>();
+        Node vi = lookupNode.get(v);
+        for (Node node : vi.adjacent) {
+            result.add(node.id);
+        }
+        return result;
     }
 
     /**
@@ -136,7 +166,16 @@ public class GraphDB {
      * @return The id of the node in the graph closest to the target.
      */
     long closest(double lon, double lat) {
-        return 0;
+        double distance = Long.MAX_VALUE;
+        long result = 0;
+        for (Long vertex : vertices()) {
+            double tmp = distance(lon(vertex), lat(vertex), lon, lat);
+            if (tmp < distance) {
+                distance = tmp;
+                result = vertex;
+            }
+        }
+        return result;
     }
 
     /**
@@ -145,7 +184,7 @@ public class GraphDB {
      * @return The longitude of the vertex.
      */
     double lon(long v) {
-        return 0;
+        return lookupNode.get(v).lon;
     }
 
     /**
@@ -154,6 +193,74 @@ public class GraphDB {
      * @return The latitude of the vertex.
      */
     double lat(long v) {
-        return 0;
+        return lookupNode.get(v).lat;
     }
+
+    public static class Node {
+        public long id;
+        public double lon;
+        public double lat;
+        public LinkedList<Node> adjacent;
+        public LinkedList<Way> onWay;
+        public HashMap<String, String> info;
+        public GraphDB g;
+        public boolean marked;
+
+        public Node(GraphDB g, String d, String ln, String lt) {
+            char[] digits = d.toCharArray();
+            id = 0;
+            for (char digit : digits) {
+                id = id * 10;
+                id = id + digit - 48;
+            }
+            this.g = g;
+            lon = Double.parseDouble(ln);
+            lat = Double.parseDouble(lt);
+            adjacent = new LinkedList<>();
+            onWay = new LinkedList<>();
+            info = new HashMap<>();
+            g.lookupNode.put(id, this);
+            g.addNode(this);
+            marked = false;
+        }
+
+        public void connectWith(Node v) {
+            adjacent.add(v);
+        }
+
+        public void addWay(Way w) {
+            onWay.add(w);
+        }
+    }
+
+    public static class Way {
+        public HashMap<String, String> info;
+        public ArrayList<Long> nodes;
+        public String id;
+        public boolean valid;
+        public GraphDB g;
+
+        public Way(GraphDB g, String d) {
+            id = d;
+            info = new HashMap<>();
+            nodes = new ArrayList<>();
+            valid = false;
+            this.g = g;
+            g.addWay(this);
+        }
+
+        public void addNode(String d) {
+            char[] digits = d.toCharArray();
+            long nodeId = 0;
+            for (char digit : digits) {
+                nodeId = nodeId * 10;
+                nodeId = nodeId + digit - 48;
+            }
+            nodes.add(nodeId);
+            g.lookupNode.get(nodeId).addWay(this);
+        }
+    }
+
+
+
 }

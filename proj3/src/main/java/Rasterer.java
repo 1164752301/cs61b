@@ -44,9 +44,59 @@ public class Rasterer {
     public Map<String, Object> getMapRaster(Map<String, Double> params) {
         // System.out.println(params);
         Map<String, Object> results = new HashMap<>();
-        System.out.println("Since you haven't implemented getMapRaster, nothing is displayed in "
-                           + "your browser.");
+        results.put("query_success", true);
+        Double ullon = params.get("ullon");
+        Double ullat = params.get("ullat");
+        Double lrlat = params.get("lrlat");
+        Double lrlon = params.get("lrlon");
+        Double w = params.get("w");
+        Double h = params.get("h");
+        Double imageL = 256.0;
+        int depth = 0;
+        Double ROOT_ULLON = -122.2998046875, ROOT_LRLON = -122.2119140625,
+                ROOT_ULLAT = 37.892195547244356, ROOT_LRLAT = 37.82280243352756;
+        Double lon = ROOT_LRLON - ROOT_ULLON;
+        Double lat = ROOT_ULLAT - ROOT_LRLAT;
+        //find the appropriate depth and find the corresponding lon and lat of a tile
+        while (LonDPP(lon, imageL) > LonDPP(lrlon - ullon, w) && depth < 7) {
+            depth += 1;
+            lon = lon / 2;
+            lat = lat / 2;
+        }
+        //divide feets into tiles
+        Double left = ullon - ROOT_ULLON;
+        Double right = lrlon - ROOT_ULLON;
+        Double top = ROOT_ULLAT - ullat;
+        Double bottom = ROOT_ULLAT - lrlat;
+        if (ullon < ROOT_ULLON || lrlon > ROOT_LRLON
+                || ullat > ROOT_ULLAT || lrlat < ROOT_LRLAT) {
+            results.put("query_success", false);
+        }
+        if (ullon >= lrlon || ullat <= lrlat) {
+            results.put("query_success", false);
+        }
+        int xMin = (int) (left / lon);
+        int xMax = (int) (right / lon);
+        int yMin = (int) (top / lat);
+        int yMax = (int) (bottom / lat);
+        String[][] render_grid = new String[yMax - yMin + 1][xMax - xMin + 1];
+        for(int i = 0; i < render_grid.length; i++) {
+            for(int j = 0; j < render_grid[i].length; j++) {
+                render_grid[i][j] = "d" + depth + "_x" + (j + xMin)
+                        + "_y" + (i + yMin) + ".png";
+            }
+        }
+        results.put("raster_ul_lon", ROOT_ULLON + xMin * lon);
+        results.put("raster_ul_lat", ROOT_ULLAT - yMin * lat);
+        results.put("raster_lr_lon", ROOT_ULLON + (xMax + 1) * lon);
+        results.put("raster_lr_lat", ROOT_ULLAT - (yMax + 1) * lat);
+        results.put("depth", depth);
+        results.put("render_grid", render_grid);
         return results;
+    }
+
+    private Double LonDPP(Double lon, Double w){
+        return lon / w;
     }
 
 }

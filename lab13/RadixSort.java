@@ -17,6 +17,7 @@ public class RadixSort {
      */
     public static String[] sort(String[] asciis) {
         // TODO: Implement LSD Sort
+
         return null;
     }
 
@@ -28,6 +29,12 @@ public class RadixSort {
      */
     private static void sortHelperLSD(String[] asciis, int index) {
         // Optional LSD helper method for required LSD radix sort
+        int[] auxiliary = new int[asciis.length];
+        int i = 0;
+        for(String s : asciis) {
+            if (index > s.length() - 1) auxiliary[i++] = 0;
+            else auxiliary[i++] = s.charAt(index);
+        }
         return;
     }
 
