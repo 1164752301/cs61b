@@ -51,7 +51,7 @@ public class GraphBuildingHandler extends DefaultHandler {
         tmpWay = null;
         lastNode = null;
     }
-
+    
     /**
      * Called at the beginning of an element. Typically, you will want to handle each element in
      * here, and you may want to track the parent element.
@@ -76,14 +76,12 @@ public class GraphBuildingHandler extends DefaultHandler {
 //            System.out.println("Node id: " + attributes.getValue("id"));
 //            System.out.println("Node lon: " + attributes.getValue("lon"));
 //            System.out.println("Node lat: " + attributes.getValue("lat"));
-
             /* TODO Use the above information to save a "node" to somewhere. */
             GraphDB.Node node = new GraphDB.Node(g, attributes.getValue("id"),
                     attributes.getValue("lon"),
                     attributes.getValue("lat"));
             lastNode = node;
             /* Hint: A graph-like structure would be nice. */
-
         } else if (qName.equals("way")) {
             /* We encountered a new <way...> tag. */
             activeState = "way";
@@ -92,7 +90,6 @@ public class GraphBuildingHandler extends DefaultHandler {
         } else if (activeState.equals("way") && qName.equals("nd")) {
             /* While looking at a way, we found a <nd...> tag. */
             //System.out.println("Id of a node in this way: " + attributes.getValue("ref"));
-
             /* TODO Use the above id to make "possible" connections between the nodes in this way */
             /* Hint1: It would be useful to remember what was the last node in this way. */
             /* Hint2: Not all ways are valid. So, directly connecting the nodes here would be
@@ -100,7 +97,6 @@ public class GraphBuildingHandler extends DefaultHandler {
             makes this way invalid. Instead, think of keeping a list of possible connections and
             remember whether this way is valid or not. */
             tmpWay.addNode(attributes.getValue("ref"));
-
         } else if (activeState.equals("way") && qName.equals("tag")) {
             /* While looking at a way, we found a <tag...> tag. */
             String k = attributes.getValue("k");

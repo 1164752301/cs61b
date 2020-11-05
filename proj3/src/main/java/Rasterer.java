@@ -70,10 +70,10 @@ public class Rasterer {
         Double bottom = ROOT_ULLAT - lrlat;
         if (ullon < ROOT_ULLON || lrlon > ROOT_LRLON
                 || ullat > ROOT_ULLAT || lrlat < ROOT_LRLAT) {
-            results.put("query_success", false);
+            //results.put("query_success", false);
         }
         if (ullon >= lrlon || ullat <= lrlat) {
-            results.put("query_success", false);
+            //results.put("query_success", false);
         }
         int xMin = (int) (left / lon);
         int xMax = (int) (right / lon);
