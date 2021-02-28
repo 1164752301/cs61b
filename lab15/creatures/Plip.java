@@ -1,10 +1,8 @@
 package creatures;
-import huglife.Creature;
-import huglife.Direction;
-import huglife.Action;
-import huglife.Occupant;
-import huglife.HugLifeUtils;
+import huglife.*;
+
 import java.awt.Color;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.List;
 
@@ -19,13 +17,14 @@ public class Plip extends Creature {
     private int g;
     /** blue color. */
     private int b;
+    private double energy;
 
     /** creates plip with energy equal to E. */
     public Plip(double e) {
         super("plip");
-        r = 0;
-        g = 0;
-        b = 0;
+        r = 99;
+        g = 63 + (int) (96 * e);
+        b = 76;
         energy = e;
     }
 
@@ -42,7 +41,7 @@ public class Plip extends Creature {
      *  that you get this exactly correct.
      */
     public Color color() {
-        g = 63;
+        g = Math.max(0, Math.min(63 + (int) (96 * energy), 255));
         return color(r, g, b);
     }
 
@@ -55,11 +54,15 @@ public class Plip extends Creature {
      *  private static final variable. This is not required for this lab.
      */
     public void move() {
+        energy -= 0.5;
+
     }
 
 
     /** Plips gain 0.2 energy when staying due to photosynthesis. */
     public void stay() {
+        energy += 0.2;
+        if (energy > 2) energy = 2;
     }
 
     /** Plips and their offspring each get 50% of the energy, with none
@@ -67,7 +70,9 @@ public class Plip extends Creature {
      *  Plip.
      */
     public Plip replicate() {
-        return this;
+        Plip baby = new Plip(energy / 2);
+        this.energy = energy / 2;
+        return baby;
     }
 
     /** Plips take exactly the following actions based on NEIGHBORS:
@@ -81,6 +86,29 @@ public class Plip extends Creature {
      *  for an example to follow.
      */
     public Action chooseAction(Map<Direction, Occupant> neighbors) {
+        boolean flag1 = true, flag2 = false, flag3 = false, flag4 = true;
+        LinkedList<Direction> emptyDirection = new LinkedList<>();
+        for (Direction dir : neighbors.keySet()) {
+            Occupant neighbour = neighbors.get(dir);
+            if (neighbour.name().equals("empty")) {
+                flag1 = false;
+                emptyDirection.add(dir);
+            }
+            if (energy >= 1) flag2 = true;
+            if (neighbour.name().equals("clorus")) flag3 = true;
+        }
+        boolean[] actionFlag = {flag1, flag2, flag3, flag4};
+        int n = 0;
+        for (boolean flag : actionFlag) {
+            n += 1;
+            if (flag) break;
+        }
+        if (n == 1) return new Action(Action.ActionType.STAY);
+        if (n == 2) return new Action(Action.ActionType.REPLICATE,
+                        HugLifeUtils.randomEntry(emptyDirection));
+        if (n == 3 && HugLifeUtils.randomInt(0, 1) == 0)
+                return new Action(Action.ActionType.MOVE,
+                HugLifeUtils.randomEntry(emptyDirection));
         return new Action(Action.ActionType.STAY);
     }
 

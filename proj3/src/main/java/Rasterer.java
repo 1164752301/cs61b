@@ -44,7 +44,6 @@ public class Rasterer {
     public Map<String, Object> getMapRaster(Map<String, Double> params) {
         // System.out.println(params);
         Map<String, Object> results = new HashMap<>();
-        results.put("query_success", true);
         Double ullon = params.get("ullon");
         Double ullat = params.get("ullat");
         Double lrlat = params.get("lrlat");
@@ -68,12 +67,17 @@ public class Rasterer {
         Double right = lrlon - ROOT_ULLON;
         Double top = ROOT_ULLAT - ullat;
         Double bottom = ROOT_ULLAT - lrlat;
-        if (ullon < ROOT_ULLON || lrlon > ROOT_LRLON
-                || ullat > ROOT_ULLAT || lrlat < ROOT_LRLAT) {
-            //results.put("query_success", false);
-        }
-        if (ullon >= lrlon || ullat <= lrlat) {
-            //results.put("query_success", false);
+        if (lrlon < ROOT_ULLON || ullon > ROOT_LRLON
+                || lrlat > ROOT_ULLAT || ullat < ROOT_LRLAT
+                || ullon >= lrlon || ullat <= lrlat) {
+            results.put("query_success", false);
+            results.put("raster_ul_lon", 0);
+            results.put("raster_ul_lat", 0);
+            results.put("raster_lr_lon", 0);
+            results.put("raster_lr_lat", 0);
+            results.put("depth", 0);
+            results.put("render_grid", null);
+            return results;
         }
         int xMin = (int) (left / lon);
         int xMax = (int) (right / lon);
@@ -92,6 +96,7 @@ public class Rasterer {
         results.put("raster_lr_lat", ROOT_ULLAT - (yMax + 1) * lat);
         results.put("depth", depth);
         results.put("render_grid", render_grid);
+        results.put("query_success", true);
         return results;
     }
 

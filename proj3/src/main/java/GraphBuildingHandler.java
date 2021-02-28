@@ -51,7 +51,7 @@ public class GraphBuildingHandler extends DefaultHandler {
         tmpWay = null;
         lastNode = null;
     }
-    
+
     /**
      * Called at the beginning of an element. Typically, you will want to handle each element in
      * here, and you may want to track the parent element.

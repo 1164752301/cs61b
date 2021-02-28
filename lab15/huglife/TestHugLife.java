@@ -1,4 +1,5 @@
 package huglife;
+import creatures.Plip;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
@@ -20,7 +21,6 @@ public class TestHugLife {
         g.doMove(0, 10, 0, 11);
         g.drawWorld();
         StdDraw.show(20);
-
     }
 
     public static void main(String[] args) {
